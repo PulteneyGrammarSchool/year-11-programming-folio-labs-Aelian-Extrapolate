@@ -8,8 +8,8 @@ screen = pygame.display.set_mode(size)
 pygame.display.set_caption("infini-snakes")
 done = False
 clock = pygame.time.Clock()
-click_time = 0
 frames = 60
+click_time = 0
 s = random.choice([1,5,7])
 ls = {1:90, 3:30, 5:15, 7:7}
 t = 0.0
