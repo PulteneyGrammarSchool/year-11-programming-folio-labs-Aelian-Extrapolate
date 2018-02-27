@@ -11,7 +11,7 @@ pygame.display.set_caption("infini-snakes")
 done = False
 clock = pygame.time.Clock()
 frames = 60
-r = 40
+r = 20
 f_pos =[size[0]/2,size[1]/2]
 scale = 10
 g = 0.1
