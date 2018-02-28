@@ -62,8 +62,8 @@ def d_face(c, r):
         pygame.draw.line(screen, colours["black"], [a-r/2,b-r/3], [a-r/6, b-r/12],5)
         pygame.draw.line(screen, colours["black"], [a-r/6,b-r/3], [a-r/2, b-r/12],5)
 
-        pygame.draw.line(screen, colours["black"], [a+r/2,b-r/3], [a+r/6, b-r/12],5)
-        pygame.draw.line(screen, colours["black"], [a+r/6,b-r/3], [a+r/2, b-r/12],5)
+        pygame.draw.line(screen, colours["black"], [a+r/2,b-r/3], [a+r/6, b-r/12],2)
+        pygame.draw.line(screen, colours["black"], [a+r/6,b-r/3], [a+r/2, b-r/12],2)
     pygame.draw.polygon(screen, colours["red"], [[a-3*r/7, b+r/4], [a-r/5, b+3*r/5], [a+r/5, b+3*r/5], [a+3*r/7, b+r/4], [a, b+2*r/5]], 0)
 
 def d_catcher(c):
