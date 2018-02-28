@@ -59,8 +59,8 @@ def d_face(c, r):
         pygame.draw.rect(screen, colours["black"], [a- r/2, b- r/3, r/3, r/4], 0)
         pygame.draw.rect(screen, colours["black"], [a+ r/6, b- r/3, r/3, r/4], 0)
     else:
-        pygame.draw.line(screen, colours["black"], [a-r/2,b-r/3], [a-r/6, b-r/12],5)
-        pygame.draw.line(screen, colours["black"], [a-r/6,b-r/3], [a-r/2, b-r/12],5)
+        pygame.draw.line(screen, colours["black"], [a-r/2,b-r/3], [a-r/6, b-r/12],2)
+        pygame.draw.line(screen, colours["black"], [a-r/6,b-r/3], [a-r/2, b-r/12],2)
 
         pygame.draw.line(screen, colours["black"], [a+r/2,b-r/3], [a+r/6, b-r/12],2)
         pygame.draw.line(screen, colours["black"], [a+r/6,b-r/3], [a+r/2, b-r/12],2)
