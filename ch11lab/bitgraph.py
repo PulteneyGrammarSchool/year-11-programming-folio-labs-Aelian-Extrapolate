@@ -2,7 +2,7 @@ import random
 import pygame
 import math
 import time
-colours = {"blood3":(0x8e, 0x09, 0x26), "blood2":(0x51, 0x02, 0x13), "blood1":(0x72, 0x09, 0x20), "pink":(0xe8, 0x8b, 0xbf),"dsilver":(0x84, 0x7b, 0xaa),"silver":(0xb9, 0xb1, 0xd8),"dblue":(0x3a, 0x2b, 0x75),"red":(0xd1, 0x21, 0x3e),"dgreen":(0x3d, 0xa0, 0x3d),"black":(0x00, 0x00, 0x00), "white":(0xff,0xff,0xff),"purple":(0xb8, 0x37, 0xcc),"green":(0x56, 0xd3, 0x56)}
+colours = {"blood3":(0x8e, 0x09, 0x26, 0x7f), "blood2":(0x51, 0x02, 0x13, 0x7f), "blood1":(0x72, 0x09, 0x20, 0x7f), "pink":(0xe8, 0x8b, 0xbf),"dsilver":(0x84, 0x7b, 0xaa),"silver":(0xb9, 0xb1, 0xd8),"dblue":(0x3a, 0x2b, 0x75),"red":(0xd1, 0x21, 0x3e),"dgreen":(0x3d, 0xa0, 0x3d),"black":(0x00, 0x00, 0x00), "white":(0xff,0xff,0xff),"purple":(0xb8, 0x37, 0xcc),"green":(0x56, 0xd3, 0x56)}
 pygame.init()
 size = (600,400)
 screen = pygame.display.set_mode(size)
@@ -21,6 +21,7 @@ w = 50
 h = 5
 dead = False
 
+back = pygame.image.load('background.png').convert()
 class Blood():
     def __init__(self,pos):
         self.pos = [pos[0], pos[1]]
@@ -43,7 +44,9 @@ class Blood():
 
     def pretty(self, screen):
         #print(self.pos)
-        pygame.draw.ellipse(screen, colours[self.colour], [self.pos[0]-self.rad,self.pos[1]-self.rad,2*self.rad,2*self.rad], 0)
+        pygame.draw.ellipse(screen, (0,255,0,127), [self.pos[0]-self.rad,self.pos[1]-self.rad,2*self.rad,2*self.rad], 0)
+
+        #pygame.draw.ellipse(screen, colours[self.colour], [self.pos[0]-self.rad,self.pos[1]-self.rad,2*self.rad,2*self.rad], 0)
 
     def static(self,curr):
         if self.vel[0] == 0.0 and self.vel[1] == 0.0:
@@ -74,6 +77,7 @@ def d_catcher(c):
 
 def draw(pos):
     global f_pos, r, c_vel , w
+    screen.blit(back, [0,0])
     d_face(f_pos,r)
     d_catcher(c_pos)
     if not dead:

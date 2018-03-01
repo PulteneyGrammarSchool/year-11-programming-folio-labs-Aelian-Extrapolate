@@ -3,7 +3,8 @@ import math
 import random
 
 def min3(a,b,c):
-    return min(a,b,c)
+    d = [a,b,c].sort()
+    return d
 
 def box(y,x):
     for i in range(y):
