@@ -4,7 +4,7 @@ import random
 
 def min3(a,b,c):
     d = [a,b,c].sort()
-    return d
+    return d[0]
 
 def box(y,x):
     for i in range(y):

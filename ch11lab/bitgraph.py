@@ -2,11 +2,12 @@ import random
 import pygame
 import math
 import time
-colours = {"blood3":(0x8e, 0x09, 0x26, 0x7f), "blood2":(0x51, 0x02, 0x13, 0x7f), "blood1":(0x72, 0x09, 0x20, 0x7f), "pink":(0xe8, 0x8b, 0xbf),"dsilver":(0x84, 0x7b, 0xaa),"silver":(0xb9, 0xb1, 0xd8),"dblue":(0x3a, 0x2b, 0x75),"red":(0xd1, 0x21, 0x3e),"dgreen":(0x3d, 0xa0, 0x3d),"black":(0x00, 0x00, 0x00), "white":(0xff,0xff,0xff),"purple":(0xb8, 0x37, 0xcc),"green":(0x56, 0xd3, 0x56)}
+colours = {"blood3":(0x8e, 0x09, 0x26, 0x50), "white":(0xff, 0xff, 0xff, 0x70), "blood2":(0x51, 0x02, 0x13, 0x50), "blood1":(0x72, 0x09, 0x20, 0x50), "pink":(0xe8, 0x8b, 0xbf),"dsilver":(0x84, 0x7b, 0xaa),"silver":(0xb9, 0xb1, 0xd8, 0x100),"dblue":(0x3a, 0x2b, 0x75),"red":(0xd1, 0x21, 0x3e, 0x70),"dgreen":(0x3d, 0xa0, 0x3d),"black":(0x00, 0x00, 0x00),"purple":(0xb8, 0x37, 0xcc),"green":(0x56, 0xd3, 0x56)}
 pygame.init()
 size = (600,400)
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("infini-snakes")
+surface = pygame.Surface((size), pygame.SRCALPHA, 32)
 done = False
 clock = pygame.time.Clock()
 frames = 60
@@ -22,6 +23,7 @@ h = 5
 dead = False
 
 back = pygame.image.load('background.png').convert()
+scream = pygame.mixer.Sound('scream.ogg')
 class Blood():
     def __init__(self,pos):
         self.pos = [pos[0], pos[1]]
@@ -44,16 +46,16 @@ class Blood():
 
     def pretty(self, screen):
         #print(self.pos)
-        pygame.draw.ellipse(screen, (0,255,0,127), [self.pos[0]-self.rad,self.pos[1]-self.rad,2*self.rad,2*self.rad], 0)
+        #pygame.draw.ellipse(screen, (0,255,0,10), [self.pos[0]-self.rad,self.pos[1]-self.rad,2*self.rad,2*self.rad], 0)
 
-        #pygame.draw.ellipse(screen, colours[self.colour], [self.pos[0]-self.rad,self.pos[1]-self.rad,2*self.rad,2*self.rad], 0)
+        pygame.draw.ellipse(screen, colours[self.colour], [self.pos[0]-self.rad,self.pos[1]-self.rad,2*self.rad,2*self.rad], 0)
 
     def static(self,curr):
         if self.vel[0] == 0.0 and self.vel[1] == 0.0:
             return curr
         return False
 
-def d_face(c, r):
+def d_face(screen, c, r):
     a = c[0]
     b = c[1]
     pygame.draw.ellipse(screen, colours["white"], [a-r, b-r, 2*r, 2*r], 0)
@@ -69,17 +71,17 @@ def d_face(c, r):
         pygame.draw.line(screen, colours["black"], [a+r/6,b-r/3], [a+r/2, b-r/12],2)
     pygame.draw.polygon(screen, colours["red"], [[a-3*r/7, b+r/4], [a-r/5, b+3*r/5], [a+r/5, b+3*r/5], [a+3*r/7, b+r/4], [a, b+2*r/5]], 0)
 
-def d_catcher(c):
+def d_catcher(screen, c):
     x = c[0]
     y = c[1]
     pygame.draw.rect(screen, colours["red"], [x- (w/2), y, w, h], 0)
 
 
-def draw(pos):
+def draw(screen, pos):
     global f_pos, r, c_vel , w
     screen.blit(back, [0,0])
-    d_face(f_pos,r)
-    d_catcher(c_pos)
+    d_face(screen, f_pos,r)
+    d_catcher(screen, c_pos)
     if not dead:
         f_pos[0] += (pos[0]-f_pos[0])/scale
         f_pos[1] += (pos[1]-f_pos[1])/scale
@@ -160,18 +162,21 @@ while not done:
     if (not dead) and collide():
         print("YOU CAUSE ME ETERNAL AGONY!")
         dead = True
+        scream.play()
         bleed()
     if dead:
         curr = True
         for i in veins:
             curr = i.static(curr)
         if curr:
-            time.sleep(1)
+            time.sleep(2.3)
             done = True
     keydown(pygame.key.get_pressed())
     pos = pygame.mouse.get_pos()
-    screen.fill(colours["dblue"])
-    draw(pos)
+    screen.blit(back, [0,0])
+    #screen.fill(colours["black"])
+    draw(surface,pos)
+    screen.blit(surface, [0,0])
     pygame.display.flip()
     clock.tick(frames)
 
