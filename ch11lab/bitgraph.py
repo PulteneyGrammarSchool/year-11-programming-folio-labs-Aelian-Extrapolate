@@ -26,6 +26,9 @@ clock = pygame.time.Clock()
 frames = 60
 
 select = 0
+select2 = 0
+c_pos2 = [0,0]
+c_vel2 = [0.0,0.0]
 toggle = False
 veins = []
 r = 20
@@ -85,8 +88,8 @@ def client():
     s.connect((TCP_IP, TCP_PORT))
     phase = 0.3
 
-def rend_fonts(screen, pos):
-    global select
+def rend_fonts(screen, pos, pos2):
+    global select, select2
     if phase == 0:
         title = titfont.render("Catch the Face", True, colours['blood3'] )
         title_size = titfont.size("Catch the Face")
@@ -130,6 +133,34 @@ def rend_fonts(screen, pos):
         title_size = titfont.size("Choose Role")
         screen.blit(title, [size[0]/2 - title_size[0]/2, size[1]/4 - title_size[1]])
 
+        ghost_size = myfont.size("Ghost")
+        colour = 'blood3'
+        l = size[0]/2 - ghost_size[0]/2
+        r = l + ghost_size[0]
+        t = 4*size[1]/9 - ghost_size[1]
+        b = t + ghost_size[1]
+        if l < pos[0] and pos[0]<r and t < pos[1] and pos[1]< b:
+            colour = 'red'
+            select2 = 1
+        else:
+            select2 = 0
+        ghost = myfont.render("Ghost", True, colours[colour] )
+        screen.blit(ghost, [size[0]/2 - ghost_size[0]/2, 4*size[1]/9 - ghost_size[1]])
+
+        catcher_size = myfont.size("Catcher")
+        colour = 'blood3'
+        l = size[0]/2 - catcher_size[0]/2
+        r = l + catcher_size[0]
+        t = 2*size[1]/3 - catcher_size[1]
+        b = t + catcher_size[1]
+        if l < pos[0] and pos[0]<r and t < pos[1] and pos[1]< b:
+            colour = 'red'
+            select2 = 2
+        elif select2 != 1:
+            select2 = 0
+        catcher = myfont.render("Catcher", True, colours[colour] )
+        screen.blit(catcher, [size[0]/2 - catcher_size[0]/2, 2*size[1]/3 - catcher_size[1]])
+
 
 def d_face(screen, c, r):
     a = c[0]
@@ -153,12 +184,12 @@ def d_catcher(screen, c):
     pygame.draw.rect(screen, colours["red"], [x- (w/2), y, w, h], 0)
 
 
-def draw(screen, pos):
+def draw(screen, pos, pos2):
     global f_pos, r, c_vel , w, toggle
     if phase == 0.0:
-        rend_fonts(screen, pos)
+        rend_fonts(screen, pos, pos)
     elif phase == 0.1:
-        rend_fonts(screen, pos)
+        rend_fonts(screen, pos, pos)
         if toggle:
             if select == 1:
                 serve()
@@ -166,9 +197,9 @@ def draw(screen, pos):
                 client()
         toggle = True
     elif phase == 0.2:
-        rend_fonts(screen, pos)
+        rend_fonts(screen, pos , pos2)
     elif phase == 0.3:
-        rend_fonts(screen, pos)
+        rend_fonts(screen, pos, pos2)
     elif phase == 1.0:
         screen.blit(back, [0,0])
         d_face(screen, f_pos,r)
@@ -242,6 +273,12 @@ def mousedown(curs):
             phase = 0.1
         elif select == 2:
             phase = 0.1
+    if phase == 0.2:
+        if select2 == 1:
+            phase = 1.0
+        if select2 == 2:
+            phase = 1.1
+            
 
 def bleed():
     global f_pos
@@ -267,24 +304,35 @@ while not done:
         if curr:
             time.sleep(2.3)
             done = True
+
     if phase >= 1:
         keydown(pygame.key.get_pressed())
     pos = pygame.mouse.get_pos()
+
     if phase >0.1:
         if select == 1:
-            s.sendall((str(pos[0])+' '+str(pos[1])).encode('utf-8'))
-            pos = s.recv(BUFFER_SIZE).decode('utf-8')
-            print(pos)
+            s.sendall((str(pos[0])+' '+str(pos[1])+' '+str(c_pos[0])+' '+str(c_pos[1])).encode('utf-8'))
+            data = s.recv(BUFFER_SIZE).decode('utf-8')
+            data = re.search(r'([0-9]*) ([0-9]*) ([0-9]*\.?[0-9]*) ([0-9]*\.?[0-9]*) ([0-9]*\.?[0-9]*) ([0-9]*\.?[0-9]*)',data)
+            pos2 = [int(data.group(1)),int(data.group(2))]
+            c_pos2 =[float(data.group(3)),float(data.group(4))]
+            c_vel2 =[float(data.group(5)),float(data.group(6))]
+            print(pos2, c_pos2, c_vel2)
         if select == 2:
-            pos = s.recv(BUFFER_SIZE).decode('utf-8')
-            data = re.search(r'([0-9]*) ([0-9]*)',pos)
-            pos = [data.group(1),data.group(2)]
-            print(data.group(1),data.group(2))
-            s.sendall((str(pos[0])+' '+str(pos[1])).encode('utf-8'))
+            pos2 = pos
+            data = s.recv(BUFFER_SIZE).decode('utf-8')
+            data = re.search(r'([0-9]*) ([0-9]*) ([0-9]*\.?[0-9]*) ([0-9]*\.?[0-9]*) ([0-9]*\.?[0-9]*) ([0-9]*\.?[0-9]*)',data)
+            pos = [int(data.group(1)),int(data.group(2))]
+            c_pos =[float(data.group(3)),float(data.group(4))]
+            c_vel =[float(data.group(5)),float(data.group(6))]
+            print(pos, c_pos, c_vel)
+            s.sendall((str(pos2[0])+' '+str(pos2[1])+' '+str(c_pos2[0])+' '+str(c_pos2[1])).encode('utf-8'))
+    else:
+        pos2 = pos
 
     screen.fill(colours["black"])
     surface.blit(back, [0,0])
-    draw(surface,pos)
+    draw(surface,pos, pos2)
     screen.blit(surface, [0,0])
     pygame.display.flip()
 
