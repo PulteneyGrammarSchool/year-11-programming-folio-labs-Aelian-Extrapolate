@@ -40,6 +40,7 @@ c_vel=[0.0,0.0]
 w = 50
 h = 5
 dead = False
+flip = 0
 
 back = pygame.image.load('background.png').convert()
 scream = pygame.mixer.Sound('scream.ogg')
@@ -185,7 +186,7 @@ def d_catcher(screen, c):
 
 
 def draw(screen, pos, pos2):
-    global f_pos, r, c_vel , w, toggle
+    global f_pos, r, c_vel , w, toggle, flip
     if phase == 0.0:
         rend_fonts(screen, pos, pos)
     elif phase == 0.1:
@@ -200,25 +201,30 @@ def draw(screen, pos, pos2):
         rend_fonts(screen, pos , pos2)
     elif phase == 0.3:
         rend_fonts(screen, pos, pos2)
-    elif phase == 1.0:
+    elif phase >= 1.0:
         screen.blit(back, [0,0])
         d_face(screen, f_pos,r)
         d_catcher(screen, c_pos)
         if not dead:
-            f_pos[0] += (pos[0]-f_pos[0])/scale
-            f_pos[1] += (pos[1]-f_pos[1])/scale
+            if select == 1:
+                f_pos[0] += (pos[0]-f_pos[0])/scale
+                f_pos[1] += (pos[1]-f_pos[1])/scale
 
-            c_pos[0] += c_vel[0]
-            c_pos[1] += c_vel[1]
-            c_vel[1] += g
-
-            if c_pos[0]-w/2 < 0 or c_pos[0] +w/2>size[0]:
-                c_pos[0]-= c_vel[0]
-                c_vel[0]*= -1
-            if c_pos[1] > size[1]-h:
-                c_vel[1] *= -1
-                w += (size[0]-w )/size[0]*10
+                c_pos[0] += c_vel[0]
+                c_pos[1] += c_vel[1]
                 c_vel[1] += g
+
+                if c_pos[0]-w/2 < 0 or c_pos[0] +w/2>size[0]:
+                    c_pos[0]-= c_vel[0]
+                    c_vel[0]*= -1
+                    flip = 1
+                else:
+                    flip = 0
+                if c_pos[1] > size[1]-h:
+                    c_vel[1] *= -1
+                    w += (size[0]-w )/size[0]*10
+                    c_vel[1] += g
+
         else:
             for i in veins:
                 i.update()
@@ -253,6 +259,7 @@ def collide():
 
 def keydown(key):
     global c_vel
+   #print (c_vel)
     if key[pygame.K_LEFT] or key[pygame.K_a]:
         c_vel[0]-=g
 
@@ -264,7 +271,8 @@ def keydown(key):
         c_vel[0]+=(0-c_vel[0]) / (scale**2)
 
 def keyup(key):
-    print("b")
+   #print("b")
+   pass
 
 def mousedown(curs):
     global select, phase
@@ -278,7 +286,7 @@ def mousedown(curs):
             phase = 1.0
         if select2 == 2:
             phase = 1.1
-            
+
 
 def bleed():
     global f_pos
@@ -305,28 +313,46 @@ while not done:
             time.sleep(2.3)
             done = True
 
-    if phase >= 1:
+    if phase >= 1 and select2 == 2:
         keydown(pygame.key.get_pressed())
     pos = pygame.mouse.get_pos()
 
     if phase >0.1:
         if select == 1:
-            s.sendall((str(pos[0])+' '+str(pos[1])+' '+str(c_pos[0])+' '+str(c_pos[1])).encode('utf-8'))
+            #print(str(f_pos[0])+' '+str(f_pos[1])+' '+str(c_pos[0])+' '+str(c_pos[1])+' '+str(phase)+' '+str(select2)+' '+str(w)+' '+str(flip))
+            s.sendall((str(f_pos[0])+' '+str(f_pos[1])+' '+str(c_pos[0])+' '+str(c_pos[1])+' '+str(phase)+' '+str(select2)+' '+str(w)+' '+str(flip)).encode('utf-8'))
             data = s.recv(BUFFER_SIZE).decode('utf-8')
-            data = re.search(r'([0-9]*) ([0-9]*) ([0-9]*\.?[0-9]*) ([0-9]*\.?[0-9]*) ([0-9]*\.?[0-9]*) ([0-9]*\.?[0-9]*)',data)
-            pos2 = [int(data.group(1)),int(data.group(2))]
-            c_pos2 =[float(data.group(3)),float(data.group(4))]
-            c_vel2 =[float(data.group(5)),float(data.group(6))]
-            print(pos2, c_pos2, c_vel2)
-        if select == 2:
-            pos2 = pos
+            data1 = re.search(r'(-?[0-9]*\.?[0-9]*) (-?[0-9]*\.?[0-9]*)',data)# ([0-9]*\.?[0-9]*) ([0-9]*\.?[0-9]*) ([0-9]*\.?[0-9]*) ([0-9]*\.?[0-9]*)
+            if data1 != None:
+                if phase >= 1.0:
+                    if select2 == 1:
+                        c_vel[0] = float(data1.group(1))
+                    elif select2 == 2:
+                        pos = [float(data1.group(1)),float(data1.group(2))]
+                else:
+                    pos2 = [int(data1.group(1)),int(data1.group(2))]
+            #c_pos2 =[float(data.group(3)),float(data.group(4))]
+            #c_vel2 =[float(data.group(5)),float(data.group(6))]
+            #print(pos2)
+        elif select == 2:
+            send = str(pos[0])+' '+str(pos[1])
             data = s.recv(BUFFER_SIZE).decode('utf-8')
-            data = re.search(r'([0-9]*) ([0-9]*) ([0-9]*\.?[0-9]*) ([0-9]*\.?[0-9]*) ([0-9]*\.?[0-9]*) ([0-9]*\.?[0-9]*)',data)
-            pos = [int(data.group(1)),int(data.group(2))]
-            c_pos =[float(data.group(3)),float(data.group(4))]
-            c_vel =[float(data.group(5)),float(data.group(6))]
-            print(pos, c_pos, c_vel)
-            s.sendall((str(pos2[0])+' '+str(pos2[1])+' '+str(c_pos2[0])+' '+str(c_pos2[1])).encode('utf-8'))
+            data1 = re.search(r'(-?[0-9]*\.?[0-9]*) (-?[0-9]*\.?[0-9]*) (-?[0-9]*\.?[0-9]*) (-?[0-9]*\.?[0-9]*)e?[+-]?[0-9]* (-?[0-9]*\.?[0-9]*) ([0-2]) ([0-9]*\.?[0-9]*) ([0-1])',data)# ([0-9]*\.?[0-9]*) ([0-9]*\.?[0-9]*) ([0-9]*\.?[0-9]*) ([0-9]*\.?[0-9]*)
+            if data1 != None:
+                f_pos = [float(data1.group(1)),float(data1.group(2))]
+                c_pos = [float(data1.group(3)),float(data1.group(4))]
+                w = float(data1.group(7))
+                flip = int(data1.group(8))
+                if float(data1.group(5)) >= 1.0:
+                    phase = 1.0
+                    select2 = 3- int(data1.group(6))
+                    if select2 == 2:
+                        #print(str(c_vel[0])+' '+str(c_vel[1]))
+                        if flip == 1:
+                            c_vel[0]*= -1
+                        send = str(c_vel[0])+' '+str(c_vel[1])
+
+            s.sendall(send.encode('utf-8'))#+' '+str(c_pos2[0])+' '+str(c_pos2[1])+' '+str(c_vel2[0])+' '+str(c_vel2[1])
     else:
         pos2 = pos
 
