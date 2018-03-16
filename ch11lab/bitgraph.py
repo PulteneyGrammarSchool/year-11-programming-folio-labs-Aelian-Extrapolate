@@ -78,7 +78,7 @@ class Blood():
 def serve():
     global s, phase
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind((TCP_IP, TCP_PORT))
+    s.bind(('0.0.0.0', TCP_PORT))
     s.listen(1)
     s, addr = s.accept()
     phase = 0.2
