@@ -21,9 +21,9 @@ size = (600,400)
 screen = pygame.display.set_mode(size)
 pygame.display.set_caption("Catch the Face")
 surface = pygame.Surface((size), pygame.SRCALPHA, 32)
-done = False
 clock = pygame.time.Clock()
 frames = 60
+done = False
 
 select = 0
 select2 = 0
