@@ -267,7 +267,7 @@ affects = ['live[k].dmg(1, step)', 'live[k].move({0:[0,-1], 1:[1,0], 2:[0,1], 3:
 
 board = Board(size, 8, 90, 50, [[["grey.png",[-45,-25]],0,64]], effects)
 
-actions = {"x":["Damaged", [], [0,0], 0, ["robo-pig.png",[-25,-20]]], 'H':['Hit', [[-1, -1, [0]], [0, -1, [0]], [1, -1, [0]]], [0, 0], 0, ["robo-pig.png", [-25, -20]]], "^":["Move Forward",[], [0,-1], 0, ["robo-pig.png",[-25,-20]]], "/":["Move Forward Right",[], [1,-1], 0, ["robo-pig.png",[-25,-20]]], "\\":["Move Forward Left",[], [-1,-1], 0, ["robo-pig.png",[-25,-20]]], "L":["Turn Left",[], [0,0], -1, ["robo-pig.png",[-25,-20]]], "R":["Turn Right",[], [0,0], 1, ["robo-pig.png",[-25,-20]]]}
+actions = {'F':['Fire', [[0, -1, [0]], [0, -2, [0]], [0, -3, [0]], [0, -4, [0]], [0, -5, [0]]], [0, 0], 0, ["robo-pig.png", [-25, -20]]], "v":["Move Backward",[], [0,1], 0, ["robo-pig.png",[-25,-20]]], "x":["Damaged", [], [0,0], 0, ["robo-pig.png",[-25,-20]]], 'H':['Hit', [[-1, -1, [0]], [0, -1, [0]], [1, -1, [0]]], [0, 0], 0, ["robo-pig.png", [-25, -20]]], "^":["Move Forward",[], [0,-1], 0, ["robo-pig.png",[-25,-20]]], "/":["Move Forward Right",[], [1,-1], 0, ["robo-pig.png",[-25,-20]]], "\\":["Move Forward Left",[], [-1,-1], 0, ["robo-pig.png",[-25,-20]]], "L":["Turn Left",[], [0,0], -1, ["robo-pig.png",[-25,-20]]], "R":["Turn Right",[], [0,0], 1, ["robo-pig.png",[-25,-20]]]}
 
 bots = [["PigBot", 5, [5,3], 0, [["robopig0.png", "robopig1.png", "robopig2.png", "robopig3.png"],[-25,-35]], actions ],['TestBot'], ['BooBot']]
 live = []#[Robot(bots[0][0],bots[0][1], bots[0][2], bots[0][3], bots[0][4], bots[0][5])]
