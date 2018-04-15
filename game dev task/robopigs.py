@@ -240,6 +240,27 @@ class Board():
             if p == [len(self.coords)-1,len(self.coords)-1]:
                 break
 
+class Animation():
+    def __init__(self, coords, imgs, board):
+        self.img = Picture(imgs[0], imgs[1])
+        self.curr = 0
+        self.img.move(self.img.add(board.where(coords)))
+
+    def update(self, phase):
+        self.img.move(self.img.add(board.where(coords)))
+        self.curr += 1
+        if self.curr >= len(self.img.img):
+            return True
+        return False
+
+    def draw(self, screen, board):
+        self.img.draw(screen, self.curr)
+
+    def add(self, pos):
+        return self.img.add(pos)
+
+    def move(self, pos):
+        self.img.move(pos)
 
 effects = {'f0':Picture("facing0.png",[-45,-25]), 'f1':Picture("facing1.png",[-45,-25]), 'f2':Picture("facing2.png",[-45,-25]), 'f3':Picture("facing3.png",[-45,-25]), 0:Picture("grey.png",[-45,-25]), 'A0':Picture("dmg.png", [-45, -25])}
 affects = ['live[k].dmg(1, step)', 'live[k].move({0:[0,-1], 1:[1,0], 2:[0,1], 3:[-1,0]}[results[1][j][1]], live[k]F.facing)']
@@ -308,6 +329,27 @@ def end(who):
     phase = 3.0
     return [who, 0]
 
+def s_again(s, plan):
+    print (player_no, plan)
+    global done
+    if player_no == 0:
+        s.sendall(str(plan[1]).encode('utf-8'))
+    data = ''
+    while data == '':
+        data = s.recv(BUFFER_SIZE)
+        data = data.decode('utf-8')
+    if eval(data) == 0:
+        plan = reset()
+    else:
+        done = True
+    return plan
+
+def reset():
+    global live, plan, phase
+    phase = 0.1
+    plan = 0
+    live = []
+    return plan
 
 def keydown(key, plan, s):
     global phase, player_no
@@ -334,9 +376,6 @@ def keydown(key, plan, s):
             plan-=1
         elif key.key == 274:#v
             plan+=1
-        elif key.unicode != '':
-            #print(key.key)
-            plan+=key.unicode
     elif phase == 1.0:
         if key.key == 8:#backspace
             plan = plan[:-2]
@@ -359,8 +398,7 @@ def keydown(key, plan, s):
         #if key.key == 8:#backspace
         #    plan = plan[:-1]
         if key.key == 13:#enter
-            phase = 1.0
-            s_again(s, plan)
+            plan = s_again(s, plan)
             #plan = client(s, plan)
         elif key.key == 275 or key.key == 276:#^
             print(plan)
@@ -385,11 +423,13 @@ def choose(screen, plan):
     title = titfont.render("Robo-Battle-Pigs", True, colours['white'])
     tit_size = titfont.size("Robo-Battle-Pigs")
     screen.blit(title, [size[0]/2 - tit_size[0]/2, size[1]/4 - tit_size[1] ])
+    print('yo')
     for i, bot in enumerate(bots):
         if i == 0:
             colour = 'red'
         else:
             colour = 'white'
+        print('emph', i, plan)
         j = (i+plan)%len(bots)
         txt = myfont.render(bots[j][0], True, colours[colour])
         txt_size = myfont.size(bots[j][0])
@@ -421,7 +461,7 @@ def display(screen, plan, board, step, tick):
     if tick == 0:
         results = [[],[]]
         for i, bot in enumerate(live):
-            print(i, step)
+            #print(i, step)
             result= bot.act(plan[i][step])
 
             bot.move(result[1], result[2])
@@ -461,7 +501,17 @@ def finale(screen, plan):
         screen.blit(y, [3*size[0]/7- y_size[0]/2,5*size[1]/8])
         screen.blit(n, [4*size[0]/7- n_size[0]/2,5*size[1]/8])
 
-
+def hud(screen, live, me):
+    for i, bot in enumerate(live):
+        if i == me:
+            colour = 'red'
+        else:
+            colour = 'white'
+        txt = myfont.render(bot.name, True, colours[colour])
+        txt_size = myfont.size(bot.name+'  ')
+        screen.blit(txt, [size[0]/16 ,(i+1)*size[1]/16 ])
+        txt = myfont.render(str(bot.health), True, colours[colour])
+        screen.blit(txt, [size[0]/16 +txt_size[0],(i+1)*size[1]/16 ])
 
 tick = 0
 step = 0
@@ -472,6 +522,7 @@ while not done:
         elif event.type == pygame.KEYDOWN:
             plan = keydown(event, plan, s)
 
+
     screen.fill(colours["black"])
 
     if phase == 0.0:
@@ -480,19 +531,22 @@ while not done:
         choose(screen, plan)
     elif phase == 1.0 or phase == 2.0:
         planning(screen, plan, board)
+        hud(screen, live, player_no)
         tick = 0
         step = 0
     elif phase == 1.1 or phase == 2.1:
         display(screen, plan, board, step, tick)
+        hud(screen, live, player_no)
         tick += 1
         #print(tick)
-        if (tick+2) % (frames) == 0:
-            print('step', step, phase)
+        if (tick+2) % (2*frames) == 0:
+            #print('step', step, phase)
             tick = 0
             step += 1
     elif phase == 3.0:
         finale(screen, plan)
-    if step == 4:
+
+    if step == 4 and (tick+2)%(2*frames)> frames:
         if phase == 1.1:
             phase = 1.0
             plan = ''
@@ -502,11 +556,11 @@ while not done:
 
 
     pygame.display.flip()
-
+    if phase == 3.0 and player_no != 0:
+        s_again(s, plan)
 
     clock.tick(frames)
 
 
 pygame.quit()
 s.close()
-print(plan.split(' ')[:-1])

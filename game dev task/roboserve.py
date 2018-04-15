@@ -192,12 +192,17 @@ class Board():
             if p == [len(self.coords)-1,len(self.coords)-1]:
                 break
 
+def reset():
+    global clients, robots
+    clients =[]
+    robots = []
 string = r'\'[A-Za-z ]*\''
 integer = r'-?[0-9]*'
 decimal = r'-?[0-9]*'
 coord = r'\[('+decimal+r'), ('+decimal+r')\]'
 shape = r'\[('+integer+r'), ('+integer+r'), ('+integer+r')\]'
 action = r'\[('+string+r'), (\[(?!'+shape+r')(?:, ('+shape+r'))*\]), ('+coord+r'), ([0-9])\]'
+
 
 no_players = 1
 
@@ -212,90 +217,108 @@ while len(clients) < no_players:
     if len(clients) == 1:
         no_players = int(data.decode('utf-8'))
 
-print('Choose robots!')
-temp = []
-for i, client in enumerate(clients):
-    data = ''
-    while data == '':
-        data = client[0].recv(BUFFER_SIZE)
-        data = data.decode('utf-8')
-
-    #name, shape, move, rotat
-    print (data)
-    data = eval(data)#re.search(r'\[('+string+r'), ('+integer+r'), ('+coord+r'), ('+integer+r'), (\[('+action+r')(?:, ('+action+r'))*\])\]', data)
-    print (data)
-    actions = data[5].copy()
-    for i in actions:
-        actions[i] = Action(actions[i][0], actions[i][1], actions[i][2], actions[i][3])
-    temp.append([data[0], data[1], data[2], data[3], data[4], data[5]])
-    robots.append(Robot(data[0], data[1], data[2], data[3], actions))
-
-
-for i, client in enumerate(clients):
-    client[0].sendall(str(temp).encode('utf-8'))
-
 while True:
-    dead= [-1,-1,-1,-1]
-    turns = []
+    print('Choose robots!')
+    temp = []
     for i, client in enumerate(clients):
         data = ''
         while data == '':
             data = client[0].recv(BUFFER_SIZE)
             data = data.decode('utf-8')
-        data = eval(data)
+
+        #name, shape, move, rotat
         print (data)
-        if data == []:
-            data = ['x','x','x','x','x']
-        elif data[0] == 'dead':
-            robots[i].is_alive = False
-            dead[i] = data[1]
-            data = ['x','x','x','x','x']
-        turns.append(data)
-    for act in range(5):
-        posits = []
-        permiss = []
-        for bot in range(len(clients)):
-            #print (act, bot, turns)
-            if turns[bot][act] in robots[bot].actions:
-                end = robots[bot].act(turns[bot][act])
-                permiss.append(True)
-                for i, place in enumerate(posits):
-                    #print(place[1], end[1])
-                    if place[1] == end[1]:
-                        #print('ahah!')
-                        turns[i][act]   = 'x'
-                        turns[bot][act] = 'x'
-                        permiss[i] = False
-                        permiss[-1] = False
-                        break
-            else:
-                turns[bot][act] = 'x'
+        data = eval(data)#re.search(r'\[('+string+r'), ('+integer+r'), ('+coord+r'), ('+integer+r'), (\[('+action+r')(?:, ('+action+r'))*\])\]', data)
+        print (data)
+        actions = data[5].copy()
+        for i in actions:
+            actions[i] = Action(actions[i][0], actions[i][1], actions[i][2], actions[i][3])
+        temp.append([data[0], data[1], data[2], data[3], data[4], data[5]])
+        robots.append(Robot(data[0], data[1], data[2], data[3], actions))
 
 
-            posits.append(end)
-        for i, yes in enumerate(permiss):
-            if yes:
-                robots[i].move(posits[i][1], posits[i][2])
-
-    no_alive = 0
-    alive = []
-    for i, bot in enumerate(robots):
-        if bot.is_alive:
-            no_alive+=1
-            alive.append(i)
-    if no_alive == 1:
-        turns = 'end('+str(alive[0])+')'
-
-    if no_alive == 0:
-        winning = 0
-        last = -1
-        for i, when in enumerate(dead):
-            if when > last:
-                last = when
-                winning = i
-        turns = 'end('+str(winning)+')'
     for i, client in enumerate(clients):
-        client[0].sendall(str(turns).encode('utf-8'))
-    if no_alive <= 1:
+        client[0].sendall(str(temp).encode('utf-8'))
+
+    while True:
+        dead= [-1,-1,-1,-1]
+        turns = []
+        for i, client in enumerate(clients):
+            data = ''
+            while data == '':
+                data = client[0].recv(BUFFER_SIZE)
+                data = data.decode('utf-8')
+            data = eval(data)
+            print (data)
+            if data == []:
+                data = ['x','x','x','x','x']
+            elif data[0] == 'dead':
+                robots[i].is_alive = False
+                dead[i] = data[1]
+                data = ['x','x','x','x','x']
+            turns.append(data)
+        for act in range(5):
+            posits = []
+            permiss = []
+            for bot in range(len(clients)):
+                #print (act, bot, turns)
+                if turns[bot][act] in robots[bot].actions:
+                    end = robots[bot].act(turns[bot][act])
+                    permiss.append(True)
+                    for i, place in enumerate(posits):
+                        #print(place[1], end[1])
+                        if place[1] == end[1]:
+                            #print('ahah!')
+                            turns[i][act]   = 'x'
+                            turns[bot][act] = 'x'
+                            permiss[i] = False
+                            permiss[-1] = False
+                            break
+                else:
+                    turns[bot][act] = 'x'
+
+
+                posits.append(end)
+            for i, yes in enumerate(permiss):
+                if yes:
+                    robots[i].move(posits[i][1], posits[i][2])
+
+        no_alive = 0
+        alive = []
+        for i, bot in enumerate(robots):
+            if bot.is_alive:
+                no_alive+=1
+                alive.append(i)
+        if no_alive == 1:
+            turns = 'end('+str(alive[0])+')'
+
+        if no_alive == 0:
+            winning = 0
+            last = -1
+            for i, when in enumerate(dead):
+                if when > last:
+                    last = when
+                    winning = i
+            turns = 'end('+str(winning)+')'
+        for i, client in enumerate(clients):
+            client[0].sendall(str(turns).encode('utf-8'))
+        if no_alive <= 1:
+            break
+    print('a')
+    data = ''
+    while data == '':
+        data = clients[0][0].recv(BUFFER_SIZE)
+
+        data = data.decode('utf-8')
+        print(data)
+
+    print('test', data)
+    for i, client in enumerate(clients):
+        client[0].sendall(data.encode('utf-8'))
+    if eval(data) == 1:
+        reset()
         break
+
+    else:
+        robots = []
 s.close()
